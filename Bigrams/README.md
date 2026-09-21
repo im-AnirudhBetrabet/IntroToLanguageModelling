@@ -1,14 +1,14 @@
-# Character-Level Bigram Language Models
+# Character-Level Language Models
 
-This directory contains my implementations of a **character-level Bigram Language Model**, built while working through Andrej Karpathy's *Neural Networks: Zero to Hero* series.
+This directory contains my implementations of **character-level language models**, built while working through Andrej Karpathy's *Neural Networks: Zero to Hero* series.
 
-The goal of this stage is to understand how a simple language model can learn the relationships between consecutive characters, first using **counts and probabilities**, and then using a **neural network**.
+The implementations progress from a simple count-based bigram model to neural models that learn character representations and use multiple characters as context.
 
 ---
 
-## What is a Bigram?
+## What is a Character-Level Language Model?
 
-A **bigram** is a pair of consecutive elements.
+A character-level language model learns to predict the next character given some previous context.
 
 For example, given the name:
 
@@ -19,34 +19,35 @@ emma
 we add special start/end tokens:
 
 ```text
-.e m m a.
+.emma.
 ```
 
-This produces the bigrams:
+A model can then learn relationships such as:
 
 ```text
-(. , e)
-(e , m)
-(m , m)
-(m , a)
-(a , .)
+e → m
+m → m
+m → a
+a → .
 ```
 
-The model learns the probability of the next character given the current character:
-
-```text
-P(next character | current character)
-```
+The goal is to learn these character relationships well enough to generate new names that resemble the patterns found in the training data.
 
 ---
 
-## Implementations
+# Implementations
 
-### 1. Count-Based Bigram Model
+## 1. Count-Based Bigram Model
 
 **File:** `bigram_counts.py`
 
-The first implementation builds the language model directly from character frequencies.
+The first implementation builds a language model directly from bigram frequencies.
+
+A **bigram** consists of two consecutive characters:
+
+```text
+(current character, next character)
+```
 
 The process is:
 
@@ -75,15 +76,17 @@ The implementation:
   * Negative Log Likelihood
   * Average Negative Log Likelihood
 
+This provides a simple, non-neural baseline for character-level language modelling.
+
 ---
 
-### 2. Neural Bigram Model
+## 2. Neural Bigram Model
 
 **File:** `bigram_model.py`
 
 The second implementation recreates the bigram model using a simple neural network.
 
-Instead of directly storing the probabilities, the model learns a **weight matrix**.
+Instead of directly storing the character transition probabilities, the model learns a weight matrix that represents the relationships between consecutive characters.
 
 The process is:
 
@@ -109,20 +112,172 @@ Gradient Descent
 
 The implementation:
 
-* Encodes characters using one-hot vectors.
+* Represents characters using one-hot encoding.
 * Uses a `27 × 27` weight matrix.
 * Computes logits from the one-hot encoded input.
 * Converts logits into probabilities using softmax.
-* Uses Negative Log Likelihood as the main loss.
-* Adds L2 regularization to the loss.
+* Uses Negative Log Likelihood with L2 regularization..
+* Adds L2 regularization.
 * Trains the weights using gradient descent.
 * Generates new names by sampling from the learned probability distribution.
 
+This demonstrates that the count-based bigram model can also be expressed as a neural model.
+
 ---
 
-## Evaluation
+## 3. Multi-Character Context MLP
 
-Both implementations use **Negative Log Likelihood (NLL)** to evaluate how well the model predicts the observed character transitions.
+**File:** `bigram_mlp.py`
+
+The third implementation extends the previous models by using **multiple previous characters as context** instead of only one.
+
+The model uses a fixed context window of three characters.
+
+For example:
+
+```text
+... → e
+..e → m
+.em → m
+emm → a
+mma → .
+```
+
+The architecture is:
+
+```text
+Character indices
+       ↓
+Character embeddings
+       ↓
+3-character context
+       ↓
+Flatten
+       ↓
+Hidden layer
+       ↓
+tanh activation
+       ↓
+Output layer
+       ↓
+27 character probabilities
+```
+
+Each character is represented using a learnable embedding.
+
+For example, with an embedding size of 10:
+
+```text
+27 characters × 10 dimensions
+```
+
+A three-character context therefore produces:
+
+```text
+3 × 10 = 30 values
+```
+
+which are passed into the first layer of the MLP.
+
+The implementation:
+
+* Uses a 3-character context window.
+* Learns character embeddings.
+* Uses a hidden layer with 200 neurons.
+* Uses `tanh` as the activation function.
+* Predicts one of 27 possible characters.
+* Uses cross-entropy loss.
+* Trains using mini-batch gradient descent.
+* Splits the dataset into training, validation, and test sets.
+* Evaluates the model on validation and test data.
+* Generates names by sampling from the learned probability distribution.
+* Visualizes the learned character embeddings before and after training.
+
+---
+
+# Character Embeddings
+
+The MLP introduces a learnable embedding matrix:
+
+```text
+27 × 10
+```
+
+The 27 rows correspond to the 27 possible characters:
+
+```text
+. a b c ... z
+```
+
+The 10 columns represent the learned dimensions of each character's embedding.
+
+These embeddings are **learned during training**, just like the other model parameters.
+
+The embeddings can also be visualized to observe how the character representations change during training.
+
+The visualization uses t-SNE to project the higher-dimensional embeddings into two dimensions.
+
+---
+
+# Training
+
+The MLP is trained using mini-batches.
+
+For each iteration:
+
+```text
+Sample a mini-batch
+       ↓
+Embedding lookup
+       ↓
+Hidden layer
+       ↓
+tanh
+       ↓
+Output logits
+       ↓
+Cross-entropy loss
+       ↓
+Backpropagation
+       ↓
+Update model parameters
+```
+
+The model parameters include:
+
+```text
+C   → Character embeddings
+W1  → First layer weights
+b1  → First layer biases
+W2  → Output layer weights
+b2  → Output layer biases
+```
+
+Gradients are cleared before each backward pass so that gradients from previous iterations do not accumulate.
+
+---
+
+# Dataset Splits
+
+The dataset is shuffled and divided into three parts:
+
+```text
+80% → Training set
+10% → Validation set
+10% → Test set
+```
+
+The training set is used to update the model parameters.
+
+The validation set can be used to evaluate the model during development and experimentation.
+
+The test set is kept separate for the final evaluation.
+
+---
+
+# Evaluation
+
+The models use **Negative Log Likelihood** or **Cross Entropy** to measure how well they predict the observed next characters.
 
 For a predicted probability `p`:
 
@@ -130,39 +285,31 @@ For a predicted probability `p`:
 Negative Log Likelihood = -log(p)
 ```
 
-A lower average NLL indicates that the model assigns higher probability to the character transitions present in the dataset.
+Lower loss means the model is assigning higher probability to the correct next character.
 
 ---
 
-## Dataset
-
-The models are trained on `names.txt`, which contains a collection of names.
-
-The special character:
+# Files
 
 ```text
-.
-```
-
-is used as both the **start-of-word** and **end-of-word** token.
-
-This allows the model to learn both:
-
-```text
-. → first character
-```
-
-and
-
-```text
-last character → .
+Bigrams/
+├── README.md
+├── bigram_counts.py
+├── bigram_model.py
+├── bigram_mlp.py
+├── bigram_mlp_exploration.py
+├── __init__.py
+└── utils/
+    ├── __init__.py
+    ├── embedding_plotter.py
+    └── make_dataset.py
 ```
 
 ---
 
-## Key Concepts
+# Key Concepts
 
-This stage covers the following concepts:
+This stage covers:
 
 * Character-level language modelling
 * Vocabulary creation
@@ -171,44 +318,39 @@ This stage covers the following concepts:
 * Laplace smoothing
 * Sampling
 * One-hot encoding
+* Character embeddings
+* Multi-character context
 * Weight matrices
 * Logits
 * Softmax
+* Cross-entropy
 * Negative Log Likelihood
 * L2 regularization
-* Gradient descent
+* `tanh` activation
 * Backpropagation
+* Gradient descent
+* Mini-batch training
+* Training / validation / test splits
+* Embedding visualization
 
 ---
 
-## The Main Idea
+# The Progression
 
-The interesting part of this stage is seeing the same basic language-modeling idea implemented in two different ways:
-
-### Count-based
+The main goal of these implementations is to understand how increasingly capable language models can be built from simple components.
 
 ```text
-How often does character B follow character A?
+Count-based Bigram
+       ↓
+Neural Bigram
+       ↓
+Multi-Character Context
+       ↓
+Character Embeddings
+       ↓
+MLP
+       ↓
+Neural Language Model
 ```
 
-### Neural
-
-```text
-Can a weight matrix learn those relationships?
-```
-
-The neural implementation shows how the probability-based model can be expressed as a simple neural network and optimized using gradient descent.
-
----
-
-## Files
-
-```text
-Bigrams/
-├── README.md
-├── bigram_counts.py
-├── bigram_model.py
-└── __init__.py
-```
-
-This directory represents the first step from **count-based language modelling toward neural language models**.
+The important transition is from simply **counting character relationships** to **learning representations and parameters that can model those relationships**.
