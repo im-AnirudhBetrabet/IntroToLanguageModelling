@@ -35,11 +35,11 @@ X_train, Y_train = build_dataset(data[:n1]  , _CONTEXT_WINDOW, lookup_table)
 X_val  , Y_val   = build_dataset(data[n1:n2], _CONTEXT_WINDOW, lookup_table)
 X_test , Y_test  = build_dataset(data[n2:]  , _CONTEXT_WINDOW, lookup_table)
 
-embedding_weights = torch.randn((_VOCABULARY_SIZE, _EMBEDDING_DIMENSION)                 , generator=gen)  # Random weights for the embedding layer
-h_layer_weights   = torch.randn((_EMBEDDING_DIMENSION * _CONTEXT_WINDOW, _HIDDEN_NEURONS), generator=gen)  # Random weights for the neurons in the hidden layer
-h_layer_biases    = torch.randn(_HIDDEN_NEURONS                                          , generator=gen)  # Random biases for the neurons in the hidden layer.
-op_layer_weights  = torch.randn((_HIDDEN_NEURONS, _VOCABULARY_SIZE)                      , generator=gen)  # Random weights for the neurons in the output layer.
-op_layer_biases   = torch.randn(_VOCABULARY_SIZE                                         , generator=gen)  # Random biases for the neurons in the output layer.
+embedding_weights = torch.randn((_VOCABULARY_SIZE, _EMBEDDING_DIMENSION)                 , generator=gen)        # Random weights for the embedding layer
+h_layer_weights   = torch.randn((_EMBEDDING_DIMENSION * _CONTEXT_WINDOW, _HIDDEN_NEURONS), generator=gen) * 0.02 # Random weights for the neurons in the hidden layer
+h_layer_biases    = torch.randn(_HIDDEN_NEURONS                                          , generator=gen) * 0.01 # Random biases for the neurons in the hidden layer.
+op_layer_weights  = torch.randn((_HIDDEN_NEURONS, _VOCABULARY_SIZE)                      , generator=gen) * 0.01 # Random weights for the neurons in the output layer.
+op_layer_biases   = torch.randn(_VOCABULARY_SIZE                                         , generator=gen) * 0    # Random biases for the neurons in the output layer.
 
 available_params = [embedding_weights, h_layer_weights, h_layer_biases, op_layer_weights, op_layer_biases] # Collecting available parameters so that they can be updated during training.
 print(f"Available parameters are: {sum(p.nelement() for p in available_params)}")
@@ -64,20 +64,22 @@ for i in range(200000):
     for p in available_params:
         p.data += -lr * p.grad
 
-emb    = embedding_weights[X_test]
-h1     = torch.tanh(emb.view(-1, _CONTEXT_WINDOW * _EMBEDDING_DIMENSION) @ h_layer_weights + h_layer_biases)
-logits = h1 @ op_layer_weights + op_layer_biases
+with torch.no_grad():
+    emb = embedding_weights[X_test]
+    h1 = torch.tanh(emb.view(-1, _CONTEXT_WINDOW * _EMBEDDING_DIMENSION) @ h_layer_weights + h_layer_biases)
+    logits = h1 @ op_layer_weights + op_layer_biases
 
-loss = F.cross_entropy(logits, Y_test)
-print(f"Loss on test set: {loss:.4f}")
+    loss = F.cross_entropy(logits, Y_test)
+    print(f"Loss on test set: {loss:.4f}")
 
-emb    = embedding_weights[X_val]
-h1     = torch.tanh(emb.view(-1, _CONTEXT_WINDOW * _EMBEDDING_DIMENSION) @ h_layer_weights + h_layer_biases)
-logits = h1 @ op_layer_weights + op_layer_biases
+with torch.no_grad():
+    emb = embedding_weights[X_val]
+    h1 = torch.tanh(emb.view(-1, _CONTEXT_WINDOW * _EMBEDDING_DIMENSION) @ h_layer_weights + h_layer_biases)
+    logits = h1 @ op_layer_weights + op_layer_biases
 
-loss = F.cross_entropy(logits, Y_val)
+    loss = F.cross_entropy(logits, Y_val)
 
-print(f"Loss on Validation set: {loss:.4f}")
+    print(f"Loss on Validation set: {loss:.4f}")
 
 
 inf_gen = torch.Generator().manual_seed(2147483647 + 20)
