@@ -2,13 +2,12 @@ import matplotlib.pyplot as plt
 import seaborn           as sns
 import torch
 import torch.nn.functional as F
-from pathlib import Path
 
+from utils.get_dataset import get_dataset
 sns.set_theme(style="darkgrid", context="talk", font_scale=0.9)
-PARENT_DIR = Path(__file__).parent.parent
 gen        = torch.Generator().manual_seed(2147483647)
 
-words = open(PARENT_DIR / 'names.txt').read().splitlines()
+words = get_dataset()
 
 print(f"Total vocabulary available is: {len(words)}")
 

@@ -34,13 +34,13 @@ from pathlib import Path
 
 from utils.embedding_plotter import plot_embeddings
 from utils.make_dataset      import build_dataset
-
+from utils.get_dataset       import get_dataset
 sns.set_theme(style="darkgrid", context="talk", font_scale=0.9)
 random.seed(42)
-PARENT_DIR = Path(__file__).parent.parent
+
 gen        = torch.Generator().manual_seed(2147483647)
 
-words = open(PARENT_DIR / 'names.txt', 'r').read().splitlines()
+words = get_dataset()
 
 print(f"Total vocabulary available is: {len(words)}")
 

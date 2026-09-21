@@ -19,13 +19,12 @@ recreated using a simple neural network and gradient-based optimization.
 
 import torch
 import torch.nn.functional as F
-from pathlib import Path
+
+from Bigrams.utils.get_dataset import get_dataset
 
 N = torch.zeros(size=[27, 27], dtype=torch.int32)
-PARENT_DIR = Path(__file__).parent.parent
 
-with open( PARENT_DIR / 'names.txt', 'r') as f:
-    names = f.read().splitlines()
+names = get_dataset()
 
 x, y = [], []
 vocabulary  : list[str]      = sorted(list(set(list(''.join(names)))))

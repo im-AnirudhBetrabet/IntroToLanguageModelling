@@ -16,13 +16,11 @@ model before introducing neural networks.
 """
 
 import torch
-from pathlib import Path
-
+from pathlib           import Path
+from utils.get_dataset import get_dataset
 N = torch.zeros([27, 27], dtype=torch.int32)                               # 27 x 27 matrix for the 26 letters and the start/end token
-PARENT_DIR = Path(__file__).parent.parent
 
-with open( PARENT_DIR / 'names.txt', 'r') as f:
-    data = f.read().splitlines()
+data = get_dataset()
 
 
 words       : list[str]              = sorted(list(set(''.join(data))))               # create a list of all available alphabets in the vocabulary sorted alphabetically
