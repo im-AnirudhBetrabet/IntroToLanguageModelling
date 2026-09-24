@@ -6,7 +6,7 @@ vowels = "aeiou"
 consonants = "bcdfghjklmnpqrstvwxyz"
 special = "."
 
-
+sns.set_theme(style="darkgrid", context="talk", font_scale=0.9)
 def plot_embeddings(data, rev_lkp_tbl, turn):
     data_12d      = data.detach().cpu().numpy()
     tsne          = TSNE(n_components=2, perplexity=5, random_state=42)
@@ -47,4 +47,4 @@ def plot_embeddings(data, rev_lkp_tbl, turn):
     ax2.set_title("t-SNE of Character Embeddings Color-Coded by Class", pad=20, fontweight="bold")
     sns.despine(left=True, bottom=True)
     plt.tight_layout()
-    plt.savefig(f"tsne_character_embeddings_{turn}_training.jpeg", dpi=300)
+    plt.savefig(f"tsne_character_embeddings_{turn}_training_test.jpeg", dpi=300)
