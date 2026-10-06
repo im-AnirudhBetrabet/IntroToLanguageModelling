@@ -67,6 +67,20 @@ The embeddings are learned together with the rest of the model during training.
 
 The embedding space can be visualized before and after training using t-SNE to observe how the learned representations change.
 
+### Embeddings before training
+
+![Embeddings before training](../text_embeddings_before_training.jpeg)
+
+### Embeddings after training
+
+![Embeddings after training](../text_embeddings_after_training.jpeg)
+
+### t-SNE visualization
+
+![t-SNE before training](../tsne_character_embeddings_before_training.jpeg)
+
+![t-SNE after training](../tsne_character_embeddings_after_training.jpeg)
+
 ## Batch Normalization
 
 Batch Normalization is applied after the hidden linear layer and before the `tanh` activation.
@@ -136,6 +150,26 @@ Output layer biases
 ```
 
 The BatchNorm running mean and running standard deviation are maintained separately and are not trainable parameters.
+
+## Training Diagnostics
+
+The deeper MLP experiment also records activation and gradient statistics.
+
+### Tanh activation distributions
+
+![Tanh activation distributions](../activation_distributions.jpeg)
+
+### Gradient distributions
+
+![Gradient distributions](../gradient_distribution.jpeg)
+
+### Weight gradient distributions
+
+![Weight gradient distributions](../weight_gradient_distribution.jpeg)
+
+### Learning-rate exploration
+
+![Learning rate estimation](../learning_rate_estimation.jpeg)
 
 ## Evaluation
 

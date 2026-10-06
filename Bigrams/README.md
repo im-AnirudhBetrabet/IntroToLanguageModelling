@@ -78,6 +78,12 @@ The implementation:
 
 This provides a simple, non-neural baseline for character-level language modelling.
 
+### Bigram Distribution
+
+![Bigram distribution](bigram_distribution.jpeg)
+
+The heatmap visualizes the learned character-transition frequencies.
+
 ---
 
 ## 2. Neural Bigram Model
