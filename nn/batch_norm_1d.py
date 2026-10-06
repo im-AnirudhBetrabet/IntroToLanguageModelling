@@ -13,8 +13,12 @@ class BatchNorm1d:
 
     def __call__(self, x):
         if self.training:
-            xmean = x.mean(0, keepdim=True)
-            xvar  = x.var(0, keepdim=True)
+            if x.ndim == 2:
+                dim = 0
+            elif x.ndim == 3:
+                dim = (0, 1)
+            xmean = x.mean(dim, keepdim=True)
+            xvar  = x.var(dim, keepdim=True)
         else:
             xmean = self._running_mean
             xvar  = self._running_var
